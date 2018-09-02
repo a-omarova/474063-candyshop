@@ -1,7 +1,7 @@
 # Личный проект «Кэндишоп» [![Build status][travis-image]][travis-url]
 
 * Студент: [Аминат Омарова](https://up.htmlacademy.ru/javascript/15/user/474063).
-* Наставник: `Неизвестно`.
+* Наставник: [Павел Скрипкин](https://htmlacademy.ru/profile/id604273).
 
 ---
 
