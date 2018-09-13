@@ -1,6 +1,6 @@
 'use strict';
 
-var Names = ['Чесночные сливки',
+var NAMES = ['Чесночные сливки',
   'Огуречный педант',
   'Молочная хрюша',
   'Грибной шейк',
@@ -29,7 +29,7 @@ var Names = ['Чесночные сливки',
   'Бельгийское пенное',
   'Острый язычок'];
 
-var ImgPaths = ['img/cards/gum-cedar.jpg',
+var IMG_PATH = ['img/cards/gum-cedar.jpg',
   'img/cards/gum-chile.jpg',
   'img/cards/gum-eggplant.jpg',
   'img/cards/gum-mustard.jpg',
@@ -58,7 +58,7 @@ var ImgPaths = ['img/cards/gum-cedar.jpg',
   'img/cards/soda-peanut-grapes.jpg',
   'img/cards/soda-russian.jpg'];
 
-var ContantsList = ['молоко',
+var CONTENTS_LIST = ['молоко',
   'сливки',
   'вода',
   'пищевой краситель',
@@ -76,6 +76,17 @@ var ContantsList = ['молоко',
   'карбамид',
   'вилларибо',
   'виллабаджо'];
+
+var CLASSES_FOR_RATING = {
+  1: 'stars__rating--one',
+  2: 'stars__rating--two',
+  3: 'stars__rating--three',
+  4: 'stars__rating--four',
+  5: 'stars__rating--five'
+};
+
+var NUMBER_OF_GOODS = 26;
+var NUMBER_OF_BUSCKET_ITEMS = 3;
 
 function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -120,33 +131,21 @@ function createItemOfGoods(name, image, contentsList) {
   };
 }
 
-function createListOfGoods(names, images, contents) {
+function createListOfGoods(numberOfItems, names, images, contents) {
   var list = [];
 
-  for (var i = 0; i < 26; i++) {
+  for (var i = 0; i < numberOfItems; i++) {
     list.push(createItemOfGoods(getRandomElem(names), getRandomElem(images), getRandomLenghtOfArray(getShuffleArray(contents))));
   }
 
   return list;
 }
-
-function createBasketList(names, images, contents) {
-  var list = [];
-
-  for (var i = 0; i < 3; i++) {
-    list.push(createItemOfGoods(getRandomElem(names), getRandomElem(images), getRandomLenghtOfArray(getShuffleArray(contents))));
-  }
-
-  return list;
-}
-
-// console.log(createListOfGoods(Names, ImgPaths, ContantsList));
 
 function createCard(good) {
   var classForAmount;
-  var classForRating;
   var textForSugar = good.nutritionFacts.sugar ? 'Содержит сахар' : 'Без сахара';
   var contentsArray = good.nutritionFacts.contents;
+  var ratingClass = CLASSES_FOR_RATING[good.rating.value];
 
   if (good.amount >= 1 && good.amount <= 5) {
     classForAmount = 'card--little';
@@ -154,24 +153,6 @@ function createCard(good) {
     classForAmount = 'card--soon';
   } else {
     classForAmount = 'card--in-stock';
-  }
-
-  switch (good.rating.value) {
-    case 1 :
-      classForRating = 'stars__rating--one';
-      break;
-    case 2 :
-      classForRating = 'stars__rating--two';
-      break;
-    case 3 :
-      classForRating = 'stars__rating--three';
-      break;
-    case 4 :
-      classForRating = 'stars__rating--four';
-      break;
-    case 5 :
-      classForRating = 'stars__rating--five';
-      break;
   }
 
   return '<article class="catalog__card card' + classForAmount + '">' +
@@ -184,7 +165,7 @@ function createCard(good) {
               '<div class="card__rating">' +
                 '<button class="card__btn-composition" type="button">Состав</button>' +
                 '<div class="card__stars stars">' +
-                  '<span class="stars__rating' + classForRating + '">Рейтинг: ' + good.rating.value + ' звёзд</span>' +
+                  '<span class="stars__rating' + ratingClass + '">Рейтинг: ' + good.rating.value + ' звёзд</span>' +
                   '<span class="star__count">(' + good.rating.number + ')</span>' +
                 '</div>' +
               '</div>' +
@@ -221,19 +202,11 @@ function createBasketItem(good) {
           '</article>';
 }
 
-
-function createListOfGoodsInDOM(list) {
+function createListOfGoodsInDOM(list, className, func) {
   for (var i = 0; i < list.length; i++) {
-    document.querySelector('.catalog__cards').innerHTML += createCard(list[i]);
+    document.querySelector(className).innerHTML += func(list[i]);
   }
 }
 
-createListOfGoodsInDOM(createListOfGoods(Names, ImgPaths, ContantsList));
-
-function createBasketListInDOM(list) {
-  for (var i = 0; i < list.length; i++) {
-    document.querySelector('.goods__cards').innerHTML += createBasketItem(list[i]);
-  }
-}
-
-createBasketListInDOM(createBasketList(Names, ImgPaths, ContantsList));
+createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST), '.catalog__cards', createCard);
+createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_BUSCKET_ITEMS, NAMES, IMG_PATH, CONTENTS_LIST), '.goods__cards', createBasketItem);
