@@ -87,6 +87,10 @@ var CLASSES_FOR_RATING = {
 
 var NUMBER_OF_GOODS = 26;
 var NUMBER_OF_BUSCKET_ITEMS = 3;
+var NUMBER_OF_FIRST_LOADED_GOODS = 13;
+var NUMBER_OF_NEXT_LOADED_GOODS = 6;
+
+var clickCounter = 0;
 
 function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -161,7 +165,7 @@ function createCard(good) {
               '<img class="card__img" src="' + good.picture + '" alt="' + good.name + '" width="265" height="264">' +
               '<span class="card__price">' + good.price + '<span class="card__currency">₽</span><span class="card__weight">/ ' + good.weight + ' Г</span></span>' +
             '</header>' +
-            '<div class="card__main">' +
+            '<div class="card__main visually-hidden">' +
               '<div class="card__rating">' +
                 '<button class="card__btn-composition" type="button">Состав</button>' +
                 '<div class="card__stars stars">' +
@@ -202,11 +206,36 @@ function createBasketItem(good) {
           '</article>';
 }
 
-function createListOfGoodsInDOM(list, className, func) {
-  for (var i = 0; i < list.length; i++) {
-    document.querySelector(className).innerHTML += func(list[i]);
+function createListOfGoodsInDOM(list, numberOfItems, containerClassName, func) {
+  document.querySelector('.catalog__load').classList.add('visually-hidden');
+
+  for (var i = 0; i < numberOfItems; i++) {
+    document.querySelector(containerClassName).innerHTML += func(list[i]);
   }
+
+  document.querySelector('.catalog__btn-more').classList.remove('visually-hidden');
 }
 
-createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST), '.catalog__cards', createCard);
-createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_BUSCKET_ITEMS, NAMES, IMG_PATH, CONTENTS_LIST), '.goods__cards', createBasketItem);
+createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST), NUMBER_OF_FIRST_LOADED_GOODS, '.catalog__cards', createCard);
+var arrayOfNextLoadGoods = createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST);
+
+document.querySelector('.catalog__btn-more').addEventListener('click', function (evt) {
+  evt.preventDefault();
+  var numberOfAddedGoods = document.querySelectorAll('.catalog__card').length;
+  var numberOfLastGoods = NUMBER_OF_GOODS - numberOfAddedGoods;
+
+  if (clickCounter === 0) {
+    arrayOfNextLoadGoods = createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST).slice(NUMBER_OF_FIRST_LOADED_GOODS);
+  } else {
+    arrayOfNextLoadGoods = arrayOfNextLoadGoods.slice(NUMBER_OF_NEXT_LOADED_GOODS);
+  }
+
+  if (numberOfAddedGoods < NUMBER_OF_GOODS && (NUMBER_OF_GOODS - numberOfAddedGoods) > NUMBER_OF_NEXT_LOADED_GOODS) {
+    createListOfGoodsInDOM(arrayOfNextLoadGoods, NUMBER_OF_NEXT_LOADED_GOODS, '.catalog__cards', createCard);
+  } else if (numberOfAddedGoods < NUMBER_OF_GOODS && (NUMBER_OF_GOODS - numberOfAddedGoods) <= NUMBER_OF_NEXT_LOADED_GOODS) {
+    createListOfGoodsInDOM(arrayOfNextLoadGoods, numberOfLastGoods, '.catalog__cards', createCard);
+    document.querySelector('.catalog__btn-more').classList.add('visually-hidden');
+  }
+
+  clickCounter++;
+});
