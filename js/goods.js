@@ -89,8 +89,12 @@ var NUMBER_OF_GOODS = 26;
 var NUMBER_OF_BUSCKET_ITEMS = 3;
 var NUMBER_OF_FIRST_LOADED_GOODS = 13;
 var NUMBER_OF_NEXT_LOADED_GOODS = 6;
+var BASKET = document.querySelector('.goods__cards');
 
-var clickCounter = 0;
+var listOfCards = createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST);
+var clickCounterBtnMore = 0;
+var numberOfGoodsInBasket = 0;
+
 
 function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -216,16 +220,18 @@ function createListOfGoodsInDOM(list, numberOfItems, containerClassName, func) {
   document.querySelector('.catalog__btn-more').classList.remove('visually-hidden');
 }
 
-createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST), NUMBER_OF_FIRST_LOADED_GOODS, '.catalog__cards', createCard);
-var arrayOfNextLoadGoods = createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST);
 
-document.querySelector('.catalog__btn-more').addEventListener('click', function (evt) {
-  evt.preventDefault();
+
+createListOfGoodsInDOM(listOfCards, NUMBER_OF_FIRST_LOADED_GOODS, '.catalog__cards', createCard);
+var arrayOfNextLoadGoods = listOfCards;
+
+document.querySelector('.catalog__btn-more').addEventListener('click', function (e) {
+  e.preventDefault();
   var numberOfAddedGoods = document.querySelectorAll('.catalog__card').length;
   var numberOfLastGoods = NUMBER_OF_GOODS - numberOfAddedGoods;
 
-  if (clickCounter === 0) {
-    arrayOfNextLoadGoods = createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST).slice(NUMBER_OF_FIRST_LOADED_GOODS);
+  if (clickCounterBtnMore === 0) {
+    arrayOfNextLoadGoods = arrayOfNextLoadGoods.slice(NUMBER_OF_FIRST_LOADED_GOODS);
   } else {
     arrayOfNextLoadGoods = arrayOfNextLoadGoods.slice(NUMBER_OF_NEXT_LOADED_GOODS);
   }
@@ -237,5 +243,74 @@ document.querySelector('.catalog__btn-more').addEventListener('click', function 
     document.querySelector('.catalog__btn-more').classList.add('visually-hidden');
   }
 
-  clickCounter++;
+  clickCounterBtnMore++;
 });
+
+document.querySelectorAll('.card__header').forEach(function (elem, i) {
+  elem.addEventListener('click', function () {
+    document.querySelectorAll('.card__main')[i].classList.toggle('visually-hidden');
+  });
+});
+
+// function checkIfBasketIsEmpty (list) {
+//   if (list.length !== 0) {
+//     document.querySelector('.goods__card-empty').classList.remove('visually-hidden');
+//   }
+// }
+
+function addGoodInBasket(elem, func) {
+  // if (BASKET.querySelectorAll('.goods_card').length !== 0) {
+  //   BASKET.querySelectorAll('.goods_card').forEach(function (card) {
+  //     if (elem.name.toLowerCase() === card.querySelector('.card-order__title').innerText.toLowerCase()) {
+  //       card.querySelector('.card-order__count').value = (+card.querySelector('.card-order__count').value + 1).toString();
+  //     } else {
+  //       BASKET.innerHTML += func(elem);
+  //       return;
+  //     }
+  //   });
+  // } else {
+  //   BASKET.innerHTML += func(elem);
+  // }
+
+  BASKET.innerHTML += func(elem);
+  numberOfGoodsInBasket++;
+  document.querySelector('.main-header__basket').innerHTML = 'В корзине ' + numberOfGoodsInBasket + ' шт. товаров';
+}
+
+function removeGoodFromBasket() {
+  document.querySelectorAll('.card-order__close').forEach(function (btn, i) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var cards = document.querySelectorAll('.goods_card');
+
+      console.log(cards, 'arr');
+      console.log(i, 'i');
+
+      BASKET.removeChild(cards[i]);
+
+      if (document.querySelectorAll('.goods_card').length === 0) {
+        document.querySelector('.goods__card-empty').classList.remove('visually-hidden');
+        document.querySelector('.main-header__basket').innerHTML = 'В корзине ничего нет';
+      } else {
+        numberOfGoodsInBasket--;
+        document.querySelector('.main-header__basket').innerHTML = 'В корзине ' + numberOfGoodsInBasket + ' шт. товаров';
+      }
+    });
+  });
+}
+
+document.querySelectorAll('.card__btn').forEach(function (elem, i) {
+  elem.addEventListener('click', function (e) {
+    e.preventDefault();
+
+    addGoodInBasket(listOfCards[i], createBasketItem);
+    removeGoodFromBasket();
+
+    if (document.querySelectorAll('.goods_card').length === 1) {
+      document.querySelector('.goods__card-empty').classList.add('visually-hidden');
+    }
+  });
+});
+
+
+
