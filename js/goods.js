@@ -241,6 +241,7 @@ document.querySelector('.catalog__btn-more').addEventListener('click', function 
   }
 
   clickCounterBtnMore++;
+  handleClickOnMoreButton();
 });
 
 
@@ -268,12 +269,10 @@ function getTargetParent(el, className) {
 
 document.querySelector('.catalog__cards').addEventListener('click', function (e) {
   var target = e.target;
-
+  var card = getTargetParent(e.target, 'catalog__card');
 
   if (!target.classList.contains('card__btn-favorite') && !target.classList.contains('.card__btn-composition')) {
-    var main = getTargetParent(e.target, 'catalog__card');
-
-    main.querySelector('.card__main').classList.toggle('visually-hidden');
+    card.querySelector('.card__main').classList.toggle('visually-hidden');
   }
 });
 
@@ -293,7 +292,7 @@ function addExistingCardInBasket(obj, func) {
   if (existingCard) {
     changeNumberOfOrederedGood(obj, existingCard);
   } else {
-    BASKET.innerHTML += func(obj);
+    BASKET.insertAdjacentHTML('beforeend', func(obj));
   }
 }
 
@@ -301,7 +300,7 @@ function addGoodInBasket(obj, func) {
   if (BASKET.querySelectorAll('.goods_card').length !== 0) {
     addExistingCardInBasket(obj, func);
   } else {
-    BASKET.innerHTML += func(obj);
+    BASKET.insertAdjacentHTML('beforeend', func(obj));
   }
 
   obj.orderedAmount++;
@@ -368,19 +367,23 @@ function createBasketCardObj(obj) {
   return basketCard;
 }
 
-document.querySelectorAll('.card__btn').forEach(function (elem, i) {
-  elem.addEventListener('click', function (e) {
-    e.preventDefault();
+function handleClickOnMoreButton() {
+  document.querySelectorAll('.card__btn').forEach(function (elem, i) {
+    elem.addEventListener('click', function (e) {
+      e.preventDefault();
 
-    addGoodInBasket(createBasketCardObj(listOfCards[i]), createBasketItem);
-    removeGoodFromBasket();
+      addGoodInBasket(createBasketCardObj(listOfCards[i]), createBasketItem);
+      removeGoodFromBasket();
 
-    if (document.querySelectorAll('.goods_card').length > 0) {
-      document.querySelector('.goods__card-empty').classList.add('visually-hidden');
-      document.querySelector('.goods__total').classList.remove('visually-hidden');
-    }
+      if (document.querySelectorAll('.goods_card').length > 0) {
+        document.querySelector('.goods__card-empty').classList.add('visually-hidden');
+        document.querySelector('.goods__total').classList.remove('visually-hidden');
+      }
+    });
   });
-});
+}
+
+handleClickOnMoreButton();
 
 // toggle btn
 
@@ -404,6 +407,5 @@ document.querySelectorAll('.toggle-btn__input').forEach(function (elem) {
       targetBlock.classList.remove('visually-hidden');
       document.querySelector('.deliver__courier').classList.add('visually-hidden');
     }
-
   });
 });
