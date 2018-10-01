@@ -94,6 +94,8 @@ var listOfCards = createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_L
 var clickCounterBtnMore = 0;
 var basketList;
 
+var NUMBER_OF_BUSCKET_ITEMS = 3;
+var cardNumberInput = document.querySelector('.payment__input-wrap--card-number .text-input__input');
 
 function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -409,3 +411,35 @@ document.querySelectorAll('.toggle-btn__input').forEach(function (elem) {
     }
   });
 });
+
+createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST), '.catalog__cards', createCard);
+createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_BUSCKET_ITEMS, NAMES, IMG_PATH, CONTENTS_LIST), '.goods__cards', createBasketItem);
+
+
+function checkCardNumber() {
+  var number = document.querySelector('.payment__input-wrap--card-number .text-input__input').value;
+
+  var arr = number.toString().split('').map(function (char, index) {
+    var digit = parseInt(char, 10);
+
+    if ((index + number.length) % 2 === 0) {
+      var digitX2 = digit * 2;
+
+      return digitX2 > 9 ? digitX2 - 9 : digitX2;
+    }
+
+    return digit;
+  });
+
+  var isValueWrong = arr.reduce(function (a, b) {
+    return a + b;
+  }, 0) % 10;
+
+  if (isValueWrong) {
+    cardNumberInput.setCustomValidity('Неверный номер карты!!!');
+  } else {
+    cardNumberInput.setCustomValidity('');
+  }
+}
+
+cardNumberInput.addEventListener('input', checkCardNumber);
