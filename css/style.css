@@ -611,10 +611,10 @@ body {
   background-color: #8269ff;
   transition: background-color 0.2s ease;
 }
-.card__btn-favorite:focus {
-  background-color: #6e58d9;
-  transition: background-color 0.2s ease
-}
+/*.card__btn-favorite:focus {*/
+  /*background-color: #6e58d9;*/
+  /*transition: background-color 0.2s ease*/
+/*}*/
 .card__btn-favorite--selected {
   background-color: #8269ff
 }
@@ -964,7 +964,7 @@ body {
   margin: 0;
   margin-bottom: 30px;
 }
-.payment__card-wrap {
+.payment__card {
   display: flex;
   justify-content: space-between;
 }

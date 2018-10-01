@@ -86,6 +86,14 @@ var CLASSES_FOR_RATING = {
 };
 
 var NUMBER_OF_GOODS = 26;
+var NUMBER_OF_FIRST_LOADED_GOODS = 13;
+var NUMBER_OF_NEXT_LOADED_GOODS = 6;
+var BASKET = document.querySelector('.goods__cards');
+
+var listOfCards = createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST);
+var clickCounterBtnMore = 0;
+var basketList;
+
 var NUMBER_OF_BUSCKET_ITEMS = 3;
 var cardNumberInput = document.querySelector('.payment__input-wrap--card-number .text-input__input');
 
@@ -162,7 +170,7 @@ function createCard(good) {
               '<img class="card__img" src="' + good.picture + '" alt="' + good.name + '" width="265" height="264">' +
               '<span class="card__price">' + good.price + '<span class="card__currency">₽</span><span class="card__weight">/ ' + good.weight + ' Г</span></span>' +
             '</header>' +
-            '<div class="card__main">' +
+            '<div class="card__main visually-hidden">' +
               '<div class="card__rating">' +
                 '<button class="card__btn-composition" type="button">Состав</button>' +
                 '<div class="card__stars stars">' +
@@ -195,7 +203,7 @@ function createBasketItem(good) {
                 '<button type="button" class="card-order__btn card-order__btn--decrease">уменьшить</button>' +
                 '<label class="card-order__label">' +
                   '<span class="visually-hidden">Количество</span>' +
-                  '<input class="card-order__count" name="gum-wasabi" value="2" type="text" id="card-order__gum-wasabi">' +
+                  '<input class="card-order__count" name="gum-wasabi" value="1" type="text" id="card-order__gum-wasabi">' +
                 '</label>' +
                 '<button type="button" class="card-order__btn card-order__btn--increase">увеличить</button>' +
               '</div>' +
@@ -203,11 +211,206 @@ function createBasketItem(good) {
           '</article>';
 }
 
-function createListOfGoodsInDOM(list, className, func) {
-  for (var i = 0; i < list.length; i++) {
-    document.querySelector(className).innerHTML += func(list[i]);
+function createListOfGoodsInDOM(list, numberOfItems, containerClassName, func) {
+  document.querySelector('.catalog__load').classList.add('visually-hidden');
+
+  for (var i = 0; i < numberOfItems; i++) {
+    document.querySelector(containerClassName).innerHTML += func(list[i]);
+  }
+
+  document.querySelector('.catalog__btn-more').classList.remove('visually-hidden');
+}
+
+createListOfGoodsInDOM(listOfCards, NUMBER_OF_FIRST_LOADED_GOODS, '.catalog__cards', createCard);
+var arrayOfNextLoadGoods = listOfCards;
+
+document.querySelector('.catalog__btn-more').addEventListener('click', function (e) {
+  e.preventDefault();
+  var numberOfAddedGoods = document.querySelectorAll('.catalog__card').length;
+  var numberOfLastGoods = NUMBER_OF_GOODS - numberOfAddedGoods;
+
+  if (clickCounterBtnMore === 0) {
+    arrayOfNextLoadGoods = arrayOfNextLoadGoods.slice(NUMBER_OF_FIRST_LOADED_GOODS);
+  } else {
+    arrayOfNextLoadGoods = arrayOfNextLoadGoods.slice(NUMBER_OF_NEXT_LOADED_GOODS);
+  }
+
+  if (numberOfAddedGoods < NUMBER_OF_GOODS && (NUMBER_OF_GOODS - numberOfAddedGoods) > NUMBER_OF_NEXT_LOADED_GOODS) {
+    createListOfGoodsInDOM(arrayOfNextLoadGoods, NUMBER_OF_NEXT_LOADED_GOODS, '.catalog__cards', createCard);
+  } else if (numberOfAddedGoods < NUMBER_OF_GOODS && (NUMBER_OF_GOODS - numberOfAddedGoods) <= NUMBER_OF_NEXT_LOADED_GOODS) {
+    createListOfGoodsInDOM(arrayOfNextLoadGoods, numberOfLastGoods, '.catalog__cards', createCard);
+    document.querySelector('.catalog__btn-more').classList.add('visually-hidden');
+  }
+
+  clickCounterBtnMore++;
+  handleClickOnMoreButton();
+});
+
+
+// addToFavorite
+
+document.querySelectorAll('.card__btn-favorite').forEach(function (btn) {
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.target.classList.toggle('card__btn-favorite--selected');
+  });
+
+});
+
+function getTargetParent(el, className) {
+  while (el.parentNode) {
+    el = el.parentNode;
+    if (el.className && el.className.indexOf(className) > -1) {
+      return el;
+    }
+  }
+  return null;
+}
+
+// show or hide dropdown for card
+
+document.querySelector('.catalog__cards').addEventListener('click', function (e) {
+  var target = e.target;
+  var card = getTargetParent(e.target, 'catalog__card');
+
+  if (!target.classList.contains('card__btn-favorite') && !target.classList.contains('.card__btn-composition')) {
+    card.querySelector('.card__main').classList.toggle('visually-hidden');
+  }
+});
+
+function changeNumberOfOrederedGood(obj, card) {
+  if (obj.amount > card.querySelector('.card-order__count').value) {
+    var existingCardCount = card.querySelector('.card-order__count');
+
+    existingCardCount.value = (+existingCardCount.value + 1).toString();
   }
 }
+
+function addExistingCardInBasket(obj, func) {
+  var existingCard = [].find.call(BASKET.querySelectorAll('.goods_card'), function (card) {
+    return obj.name.toLowerCase() === card.querySelector('.card-order__title').innerText.toLowerCase();
+  });
+
+  if (existingCard) {
+    changeNumberOfOrederedGood(obj, existingCard);
+  } else {
+    BASKET.insertAdjacentHTML('beforeend', func(obj));
+  }
+}
+
+function addGoodInBasket(obj, func) {
+  if (BASKET.querySelectorAll('.goods_card').length !== 0) {
+    addExistingCardInBasket(obj, func);
+  } else {
+    BASKET.insertAdjacentHTML('beforeend', func(obj));
+  }
+
+  obj.orderedAmount++;
+  counteBasketGoods('add');
+}
+
+function removeGoodFromBasket() {
+  document.querySelectorAll('.card-order__close').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var target = e.target;
+
+      BASKET.removeChild(target.closest('.goods_card'));
+
+      basketList = BASKET.querySelectorAll('.goods_card');
+      counteBasketGoods('remove', basketList);
+    });
+  });
+}
+
+function counteBasketGoods(action) {
+  var numberOfGoodsInBasket;
+  var goodsInBasket = [].map.call(BASKET.querySelectorAll('.goods_card'), function (elem) {
+    return +elem.querySelector('.card-order__count').value;
+  });
+
+  if (goodsInBasket.length > 0) {
+    numberOfGoodsInBasket = goodsInBasket.reduce(function (acc, value) {
+      return acc + value;
+    });
+  } else {
+    numberOfGoodsInBasket = 0;
+  }
+
+  if (action === 'add') {
+    document.querySelector('.main-header__basket').innerHTML = 'В корзине ' + numberOfGoodsInBasket + ' шт. товаров';
+    document.querySelector('.goods__total-count').innerHTML =
+      '<p class="goods__total-count">Итого за ' + numberOfGoodsInBasket + ' товаров: ' +
+        '<span class="goods__price"> 0 ₽</span>' +
+      '</p>';
+  } else if (action === 'remove') {
+    if (numberOfGoodsInBasket === 0) {
+      document.querySelector('.goods__card-empty').classList.remove('visually-hidden');
+      document.querySelector('.main-header__basket').textContent = 'В корзине ничего нет';
+      document.querySelector('.goods__total').classList.add('visually-hidden');
+    } else {
+      document.querySelector('.main-header__basket').innerHTML = 'В корзине ' + numberOfGoodsInBasket + ' шт. товаров';
+      document.querySelector('.goods__total-count').innerHTML =
+        '<p class="goods__total-count">Итого за ' + numberOfGoodsInBasket + ' товаров: ' +
+        '<span class="goods__price">0 ₽</span>' +
+        '</p>';
+    }
+  }
+}
+
+function createBasketCardObj(obj) {
+  var basketCard = Object.assign({}, obj);
+  basketCard.orderedAmount = 0;
+
+  delete basketCard.nutritionFacts;
+  delete basketCard.rating;
+  delete basketCard.weight;
+
+  return basketCard;
+}
+
+function handleClickOnMoreButton() {
+  document.querySelectorAll('.card__btn').forEach(function (elem, i) {
+    elem.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      addGoodInBasket(createBasketCardObj(listOfCards[i]), createBasketItem);
+      removeGoodFromBasket();
+
+      if (document.querySelectorAll('.goods_card').length > 0) {
+        document.querySelector('.goods__card-empty').classList.add('visually-hidden');
+        document.querySelector('.goods__total').classList.remove('visually-hidden');
+      }
+    });
+  });
+}
+
+handleClickOnMoreButton();
+
+// toggle btn
+
+document.querySelectorAll('.toggle-btn__input').forEach(function (elem) {
+  elem.addEventListener('click', function (e) {
+
+    var elemID = e.target.id;
+
+    var targetBlock = document.querySelector('.' + elemID);
+
+    if (elemID === 'payment__cash') {
+      targetBlock.classList.remove('visually-hidden');
+      document.querySelector('.payment__card').classList.add('visually-hidden');
+    } else if (elemID === 'payment__card') {
+      targetBlock.classList.remove('visually-hidden');
+      document.querySelector('.payment__cash').classList.add('visually-hidden');
+    } else if (elemID === 'deliver__courier') {
+      targetBlock.classList.remove('visually-hidden');
+      document.querySelector('.deliver__store').classList.add('visually-hidden');
+    } else if (elemID === 'deliver__store') {
+      targetBlock.classList.remove('visually-hidden');
+      document.querySelector('.deliver__courier').classList.add('visually-hidden');
+    }
+  });
+});
 
 createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_GOODS, NAMES, IMG_PATH, CONTENTS_LIST), '.catalog__cards', createCard);
 createListOfGoodsInDOM(createListOfGoods(NUMBER_OF_BUSCKET_ITEMS, NAMES, IMG_PATH, CONTENTS_LIST), '.goods__cards', createBasketItem);
