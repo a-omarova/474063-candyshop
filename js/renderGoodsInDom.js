@@ -1,6 +1,18 @@
 'use strict';
 
 (function () {
+  window.renderGoodsInDom = {
+    createListOfGoodsInDOM: function (list, numberOfItems, containerClassName, func) {
+      document.querySelector('.catalog__load').classList.add('visually-hidden');
+
+      for (var i = 0; i < numberOfItems; i++) {
+        document.querySelector(containerClassName).innerHTML += func(list[i]);
+      }
+
+      document.querySelector('.catalog__btn-more').classList.remove('visually-hidden');
+    }
+  };
+
   var CLASSES_FOR_RATING = {
     1: 'stars__rating--one',
     2: 'stars__rating--two',
@@ -11,7 +23,6 @@
 
   var NUMBER_OF_FIRST_LOADED_GOODS = 13;
   var NUMBER_OF_NEXT_LOADED_GOODS = 6;
-  var NUMBER_OF_GOODS = 26;
   var clickCounterBtnMore = 0;
 
 
@@ -55,23 +66,14 @@
             '</article>';
   }
 
-  window.createListOfGoodsInDOM = function (list, numberOfItems, containerClassName, func) {
-    document.querySelector('.catalog__load').classList.add('visually-hidden');
+  window.renderGoodsInDom.createListOfGoodsInDOM(window.listOfCards, NUMBER_OF_FIRST_LOADED_GOODS, '.catalog__cards', createCard);
 
-    for (var i = 0; i < numberOfItems; i++) {
-      document.querySelector(containerClassName).innerHTML += func(list[i]);
-    }
-
-    document.querySelector('.catalog__btn-more').classList.remove('visually-hidden');
-  };
-
-  window.createListOfGoodsInDOM(window.listOfCards, NUMBER_OF_FIRST_LOADED_GOODS, '.catalog__cards', createCard);
   var arrayOfNextLoadGoods = window.listOfCards;
 
   document.querySelector('.catalog__btn-more').addEventListener('click', function (e) {
     e.preventDefault();
     var numberOfAddedGoods = document.querySelectorAll('.catalog__card').length;
-    var numberOfLastGoods = window.NUMBER_OF_GOODS - numberOfAddedGoods;
+    var numberOfLastGoods = window.cardData.NUMBER_OF_GOODS - numberOfAddedGoods;
 
     if (clickCounterBtnMore === 0) {
       arrayOfNextLoadGoods = arrayOfNextLoadGoods.slice(NUMBER_OF_FIRST_LOADED_GOODS);
@@ -79,9 +81,9 @@
       arrayOfNextLoadGoods = arrayOfNextLoadGoods.slice(NUMBER_OF_NEXT_LOADED_GOODS);
     }
 
-    if (numberOfAddedGoods < NUMBER_OF_GOODS && (NUMBER_OF_GOODS - numberOfAddedGoods) > NUMBER_OF_NEXT_LOADED_GOODS) {
+    if (numberOfAddedGoods < window.cardData.NUMBER_OF_GOODS && (window.cardData.NUMBER_OF_GOODS - numberOfAddedGoods) > NUMBER_OF_NEXT_LOADED_GOODS) {
       window.createListOfGoodsInDOM(arrayOfNextLoadGoods, NUMBER_OF_NEXT_LOADED_GOODS, '.catalog__cards', createCard);
-    } else if (numberOfAddedGoods < NUMBER_OF_GOODS && (NUMBER_OF_GOODS - numberOfAddedGoods) <= NUMBER_OF_NEXT_LOADED_GOODS) {
+    } else if (numberOfAddedGoods < window.cardData.NUMBER_OF_GOODS && (window.cardData.NUMBER_OF_GOODS - numberOfAddedGoods) <= NUMBER_OF_NEXT_LOADED_GOODS) {
       window.createListOfGoodsInDOM(arrayOfNextLoadGoods, numberOfLastGoods, '.catalog__cards', createCard);
       document.querySelector('.catalog__btn-more').classList.add('visually-hidden');
     }
@@ -95,8 +97,8 @@
       elem.addEventListener('click', function (e) {
         e.preventDefault();
 
-        window.addGoodInBasket(window.createBasketCardObj(window.listOfCards[i]), window.createBasketItem);
-        window.removeGoodFromBasket();
+        window.basket.addGoodInBasket(window.basket.createBasketCardObj(window.listOfCards[i]), window.basket.createBasketItem);
+        window.basket.removeGoodFromBasket();
 
         if (document.querySelectorAll('.goods_card').length > 0) {
           document.querySelector('.goods__card-empty').classList.add('visually-hidden');

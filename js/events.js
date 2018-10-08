@@ -16,7 +16,7 @@
 
   document.querySelector('.catalog__cards').addEventListener('click', function (e) {
     var target = e.target;
-    var card = window.getTargetParent(e.target, 'catalog__card');
+    var card = window.helpers.getTargetParent(e.target, 'catalog__card');
 
     if (!target.classList.contains('card__btn-favorite') && !target.classList.contains('.card__btn-composition')) {
       card.querySelector('.card__main').classList.toggle('visually-hidden');
